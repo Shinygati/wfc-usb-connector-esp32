@@ -37,7 +37,6 @@ Prefer PowerShell? Follow the [CLI instructions](#cli-setup-and-use). If you cre
 | Other games, console models and long sessions | Not yet validated |
 | Community DNS | Kaeru, WiiLink WFC and AltWFC passed DNS checks. Pokemon Pearl Mystery Gift confirmed with the Kaeru configuration; other services still need game tests. |
 | Desktop interface | Optional native app: start/stop, console permissions, DNS selection, activity and setup |
-| Rust port | Planned |
 
 See [HARDWARE.md](docs/HARDWARE.md) for test evidence and known hardware issues,
 and [RE-NOTES.md](docs/RE-NOTES.md) for reverse-engineering references.
@@ -258,9 +257,6 @@ packages `pefile`, `capstone` and `unicorn`; see [RE-NOTES.md](docs/RE-NOTES.md)
 
 Original project code is available under the [MIT License](LICENSE). Third-party software retains its own licenses. Nintendo, Buffalo and Ralink names identify the hardware and software this independent project works with.
 
-## Next steps
+## Acknowledgments
 
-1. Extend the successful Pokemon Pearl Mystery Gift test to more games, console models and long sessions.
-2. Investigate hardware filtering and transmission timing/reliability.
-3. Validate the selected community WFC services with real games, including multiplayer.
-4. Refine the desktop interface and consider a Rust port after stabilization.
+OpenAI Codex assisted with the development of this project.
