@@ -62,6 +62,15 @@ python app/tools/pack_firmware.py out
   app adds itself (with icon) to the app menu via `~/.local/share/applications/wfc-connector.desktop`,
   and it quits when its window is closed.
 
+  ## Credits
+
+- **[edgarburgues](https://github.com/edgarburgues)** – author of the original
+  [wfc-usb-connector](https://github.com/edgarburgues/wfc-usb-connector), which this project is built on.
+  The reverse engineering of the Nintendo Wi-Fi USB Connector (the NWCUSBAP SSID format, the
+  WEP-104 key derivation from NintendoWFCReg.exe and the registration/permission protocol),
+  the SoftAP design and the userspace RT2570 driver all come from that project; this
+  repository ports them to Go and adds ESP32 support.
+
 ## License
 
 MIT, see `LICENSE`. Based on [wfc-usb-connector](https://github.com/edgarburgues/wfc-usb-connector) by edgarburgues (MIT).
