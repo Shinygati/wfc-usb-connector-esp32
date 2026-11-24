@@ -9,7 +9,7 @@ Based on [edgarburgues/wfc-usb-connector](https://github.com/edgarburgues/wfc-us
 Python code to Go, networking uses gVisor's userspace network stack
 (gvisor-tap-vsock), and the radio is an ESP32 running `firmware/esp32-radio`.
 
-<img width="1180" height="780" alt="idle-home" src="https://github.com/user-attachments/assets/e8f4b245-5fcd-4216-9c80-8e7de9cf5128" />
+<img width="1163" height="765" alt="idle-home" src="https://github.com/user-attachments/assets/3b20aa6a-aff3-488e-8456-9409569391fd" />
 
 ## Layout
 
