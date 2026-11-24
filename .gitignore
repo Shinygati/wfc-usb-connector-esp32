@@ -1,25 +1,7 @@
-# Nintendo/Ralink binaries and derived RE output: never commit
-original/
-re/ghidra/
-re/out/
-re/*.asm
-__pycache__/
-re/ref/
-driver/*.exe
-proto/state/
-*.pcap
-*.pcapng
-runtime/
-.venv/
-venv/
-.env
-.env.*
-*.log
-*.pem
-*.pfx
-*.p12
-*.cat
-*.pyc
-.pytest_cache/
-.vscode/
-.idea/
+# build outputs
+*.exe
+wfc-connector-linux-x64
+app/wfcconnector
+out/
+# personal data: connector SSID (= WEP key) and approved consoles
+settings.json

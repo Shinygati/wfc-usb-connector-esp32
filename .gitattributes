@@ -1,6 +1,13 @@
 * text=auto
+*.go text eol=lf
 *.py text eol=lf
 *.md text eol=lf
-*.json text eol=lf
 *.yml text eol=lf
-*.java text eol=lf
+*.ino text eol=lf
+*.html text eol=lf
+go.mod text eol=lf
+go.sum text eol=lf
+*.gz binary
+*.syso binary
+*.ico binary
+*.png binary

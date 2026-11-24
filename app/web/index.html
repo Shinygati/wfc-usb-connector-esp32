@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>WFC Connector</title>
+<link rel="icon" href="icon.png">
+<style>
+:root{
+  --bg:#0d1216; --side:#10171c; --panel:#151d23; --panel2:#1b252c; --line:#232f37; --text:#e6edf1; --muted:#8696a1; --faint:#5d6d78;
+  --accent:#2fd1a5; --accent-ink:#052219; --warn:#f2b84b; --bad:#ff6b6b;
+  --font:"Segoe UI Variable Text","Segoe UI",system-ui,-apple-system,"Ubuntu","Cantarell",sans-serif;
+  --mono:"Cascadia Mono",Consolas,"JetBrains Mono","DejaVu Sans Mono",monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font:13.5px/1.45 var(--font);
+  -webkit-font-smoothing:antialiased;user-select:none;-webkit-user-select:none;cursor:default}
+::-webkit-scrollbar{width:0;height:0}
+button,select,input{font:inherit;color:inherit;cursor:default}
+:focus{outline:none} :focus-visible{outline:2px solid rgba(47,209,165,.6);outline-offset:2px}
+.shell{display:grid;grid-template-columns:216px 1fr;height:100vh}
+
+/* sidebar */
+aside{background:var(--side);border-right:1px solid var(--line);display:flex;flex-direction:column;padding:18px 12px 14px}
+.brand{display:flex;align-items:center;gap:10px;padding:2px 6px 18px;min-width:0}
+.brand img{flex:none}
+.brand img{width:34px;height:34px}
+.brand b{display:block;font-size:15px;letter-spacing:.2px;white-space:nowrap}
+.brand span{color:var(--muted);font-size:11.5px;white-space:nowrap}
+nav button{width:100%;display:flex;align-items:center;gap:11px;padding:9px 11px;margin:1px 0;border:0;border-radius:9px;background:transparent;color:var(--muted);font-weight:550;text-align:left}
+nav button svg{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+nav button:hover{background:#151f25;color:var(--text)}
+nav button.on{background:#18262d;color:var(--text)}
+nav button.on svg{stroke:var(--accent)}
+nav .badge{margin-left:auto;background:var(--warn);color:#2b1d00;font-size:11px;font-weight:700;border-radius:99px;padding:0 7px;line-height:18px;display:none}
+.sidefoot{margin-top:auto;padding:10px;border-radius:11px;background:var(--panel);border:1px solid var(--line)}
+.state{display:flex;align-items:center;gap:8px;font-weight:600}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--faint);flex:none}
+.live .dot{background:var(--accent);box-shadow:0 0 0 3px rgba(47,209,165,.18)}
+.starting .dot{background:var(--warn)} .error .dot{background:var(--bad)}
+.sidefoot small{display:block;color:var(--muted);font-size:11.5px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* pages */
+main{position:relative;overflow:hidden}
+.page{position:absolute;inset:0;padding:24px 28px;display:none;flex-direction:column;gap:16px;overflow:auto}
+.page.on{display:flex;animation:fade .14s ease-out}
+@keyframes fade{from{opacity:0;transform:translateY(3px)}}
+.title h1{margin:0;font-size:21px;font-weight:650}
+.title p{margin:3px 0 0;color:var(--muted)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.label{font-size:11.5px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-weight:650;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+
+.hero{display:flex;align-items:center;gap:22px;padding:22px 24px;
+  background:radial-gradient(900px 260px at 0 0,rgba(47,209,165,.09),transparent 65%),var(--panel)}
+.ring{width:74px;height:74px;border-radius:50%;display:grid;place-items:center;background:#1a252b;flex:none;border:1px solid var(--line)}
+.ring svg{width:34px;height:34px;stroke:var(--faint);fill:none;stroke-width:2;stroke-linecap:round}
+.hero.live .ring{background:rgba(47,209,165,.12);border-color:rgba(47,209,165,.35)}
+.hero.live .ring svg{stroke:var(--accent)}
+.hero .txt{flex:1;min-width:0}
+.hero h2{margin:0 0 3px;font-size:23px;font-weight:700}
+.hero p{margin:0;color:var(--muted)}
+.hero .err{color:var(--bad);margin-top:6px}
+
+.btn{border:1px solid var(--line);background:var(--panel2);border-radius:10px;padding:8px 15px;font-weight:600;transition:filter .12s,background .12s}
+.btn:hover{filter:brightness(1.15)} .btn:active{filter:brightness(.95)}
+.btn:disabled{opacity:.4;filter:none}
+.btn.go{background:var(--accent);color:var(--accent-ink);border-color:transparent;padding:12px 30px;font-size:15px;min-width:132px}
+.btn.stop{background:#2b1b1f;border-color:#4b2a30;color:#ffb8b8;padding:12px 30px;font-size:15px;min-width:132px}
+.btn.ok{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+.btn.quiet{background:transparent}
+
+.banner{display:none;align-items:center;gap:12px;padding:12px 16px;border-radius:12px;background:rgba(242,184,75,.09);border:1px solid rgba(242,184,75,.4)}
+.banner b{color:var(--warn)}
+.banner .sp{flex:1}
+
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.tile{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px 15px}
+.tile b{display:block;font-size:21px;font-weight:700;font-variant-numeric:tabular-nums}
+.tile span{color:var(--muted);font-size:12px}
+
+.form{display:grid;grid-template-columns:1.5fr 1.5fr 1fr 1.2fr;gap:14px}
+.form.orig{grid-template-columns:1.5fr 1.5fr 1fr}
+.field span{display:block;color:var(--muted);font-size:12px;margin-bottom:6px}
+select,input[type=text]{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:8px 10px;appearance:none;-webkit-appearance:none}
+select{background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);
+  background-position:calc(100% - 15px) 52%,calc(100% - 10px) 52%;background-size:5px 5px;background-repeat:no-repeat;padding-right:28px}
+select option{background:#1b252c}
+input[type=text]{user-select:text;-webkit-user-select:text;cursor:text}
+select:focus,input:focus{border-color:var(--accent)}
+.note{color:var(--muted);font-size:12px;margin-top:8px}
+.locked .form{opacity:.5;pointer-events:none}
+.steps{color:var(--muted);font-size:13px;line-height:1.7}
+.steps i{font-style:normal;color:var(--text);font-weight:600}
+
+/* consoles */
+.list{display:flex;flex-direction:column;gap:8px}
+.console{display:flex;align-items:center;gap:13px;padding:12px 14px;border-radius:12px;background:var(--panel);border:1px solid var(--line)}
+.console.pending{border-color:rgba(242,184,75,.45);background:rgba(242,184,75,.06)}
+.console .ds{width:38px;height:38px;border-radius:10px;background:#1d2a32;display:grid;place-items:center;flex:none}
+.console .meta{flex:1;min-width:0}
+.console .name{font-weight:650;background:transparent;border:0;border-bottom:1px solid transparent;border-radius:0;padding:0;width:100%;max-width:300px}
+.console .name:hover{border-bottom-color:var(--line)}
+.console .name:focus{border-bottom-color:var(--accent)}
+.console .mac{font:12px var(--mono);color:var(--muted)}
+.tag{font-size:11.5px;font-weight:650;padding:2px 9px;border-radius:99px;white-space:nowrap}
+.tag.connected{background:rgba(47,209,165,.14);color:var(--accent)}
+.tag.allowed{background:#202c34;color:var(--muted)}
+.tag.pending{background:rgba(242,184,75,.16);color:var(--warn)}
+.empty{flex:1;display:grid;place-items:center;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:14px;padding:30px}
+.empty b{display:block;color:var(--text);font-size:15px;margin-bottom:4px}
+
+/* activity */
+.logwrap{flex:1;min-height:0;display:flex;flex-direction:column}
+.logbox{flex:1;min-height:0;overflow:auto;background:#0a0e11;border:1px solid var(--line);border-radius:12px;padding:12px 14px;
+  font:12px/1.6 var(--mono);color:#b7c5cd;white-space:pre-wrap;user-select:text;-webkit-user-select:text;cursor:text}
+.logbox::-webkit-scrollbar{width:8px}
+.logbox::-webkit-scrollbar-thumb{background:#26343d;border-radius:8px}
+.logbox .t{color:#56666f;margin-right:9px}
+.row{display:flex;align-items:center;gap:10px}
+.row .sp{flex:1}
+
+/* device */
+.ports{display:flex;flex-direction:column;gap:6px}
+.port{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;background:var(--panel2)}
+.port b{font-family:var(--mono);font-weight:600;min-width:64px}
+.port span{color:var(--muted);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.port span.tag{flex:none;color:inherit}
+.port span.tag.connected{color:var(--accent)} .port span.tag.allowed{color:var(--muted)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.chip{background:var(--panel2);border:1px solid var(--line);border-radius:99px;padding:2px 10px;font-size:12px;color:var(--muted)}
+.bar{height:8px;background:var(--panel2);border-radius:99px;overflow:hidden;margin:12px 0 6px}
+.bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .3s}
+.toast{position:fixed;right:20px;bottom:18px;background:#1d2a31;border:1px solid var(--line);padding:10px 15px;border-radius:10px;
+  box-shadow:0 10px 30px rgba(0,0,0,.4);display:none;max-width:420px}
+.toast.bad{background:#2b1b1f;border-color:#4b2a30;color:#ffcdcd}
+@media (max-height:700px){.page{padding:16px 22px;gap:10px}.hero{padding:16px 18px}.card{padding:12px 16px}.label{margin-bottom:6px}.title h1{font-size:19px}.note{margin-top:5px}.bar{margin:8px 0 4px}.chips{margin-top:6px}.port{padding:7px 12px}}
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside>
+    <div class="brand"><img src="icon.png" alt=""><div><b>WFC Connector</b><span>Nintendo DS online</span></div></div>
+    <nav>
+      <button data-page="home" class="on"><svg viewBox="0 0 24 24"><path d="M2.5 9a14 14 0 0 1 19 0"/><path d="M6 12.5a9 9 0 0 1 12 0"/><path d="M9.5 16a4 4 0 0 1 5 0"/><path d="M12 19.5h.01"/></svg>Connection</button>
+      <button data-page="consoles"><svg viewBox="0 0 24 24"><rect x="4" y="2.5" width="16" height="8.5" rx="2"/><rect x="4" y="13" width="16" height="8.5" rx="2"/><path d="M7 17.3h3M8.5 15.8v3"/></svg>Consoles<span class="badge" id="navbadge"></span></button>
+      <button data-page="activity"><svg viewBox="0 0 24 24"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>Activity</button>
+      <button data-page="device"><svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/></svg>Hardware</button>
+    </nav>
+    <div class="sidefoot" id="sidefoot"><div class="state"><span class="dot"></span><span id="sidestate">Offline</span></div><small id="sideinfo">v1.1.0</small></div>
+  </aside>
+
+  <main>
+    <!-- Connection -->
+    <section class="page on" id="page-home">
+      <div class="card hero" id="hero">
+        <div class="ring"><svg viewBox="0 0 24 24"><path d="M2.5 9a14 14 0 0 1 19 0"/><path d="M6 12.5a9 9 0 0 1 12 0"/><path d="M9.5 16a4 4 0 0 1 5 0"/><path d="M12 19.5h.01"/></svg></div>
+        <div class="txt"><h2 id="headline">Ready when you are</h2><p id="subline">Plug in your ESP32 and press Start.</p><div class="err" id="err"></div></div>
+        <button class="btn go" id="mainbtn">Start</button>
+      </div>
+      <div class="banner" id="banner"><span><b id="bannername">A DS</b> wants to connect.</span><span class="sp"></span><button class="btn quiet" data-goto="consoles">Review</button><button class="btn ok" id="bannerallow">Allow</button></div>
+      <div class="tiles">
+        <div class="tile"><b id="t-time">–</b><span>Online for</span></div>
+        <div class="tile"><b id="t-cons">0</b><span>Consoles online</span></div>
+        <div class="tile"><b id="t-in">0</b><span>Packets from DS</span></div>
+        <div class="tile"><b id="t-out">0</b><span>Packets to DS</span></div>
+      </div>
+      <div class="card" id="setcard">
+        <div class="label">Settings</div>
+        <div class="form" id="form">
+          <label class="field"><span>Radio</span><select id="radio"><option value="esp32">ESP32</option><option value="original">Original USB Connector</option></select></label>
+          <label class="field"><span>Online service</span><select id="dns"></select></label>
+          <label class="field"><span>Wi-Fi channel</span><select id="channel"></select></label>
+          <label class="field" id="portfield"><span>ESP32 board</span><select id="port"></select></label>
+        </div>
+        <div id="customrow" style="display:none;margin-top:10px"><input type="text" id="customdns" placeholder="DNS server address, e.g. 178.62.43.212"></div>
+        <div class="note" id="dnsnote"></div>
+      </div>
+      <div class="card">
+        <div class="label">On your DS</div>
+        <div class="steps">Open a Wi-Fi game's <i>Nintendo WFC Settings</i> › <i>Nintendo Wi-Fi Connection Settings</i> › pick an empty slot › <i>Nintendo Wi-Fi USB Connector</i>.<span id="stepsnote"> Your ESP32 answers as that connector.</span></div>
+      </div>
+    </section>
+
+    <!-- Consoles -->
+    <section class="page" id="page-consoles">
+      <div class="title"><h1>Consoles</h1><p>Only consoles you allow can connect. Click a name to rename it.</p></div>
+      <div class="list" id="consoles"></div>
+    </section>
+
+    <!-- Activity -->
+    <section class="page" id="page-activity">
+      <div class="row"><div class="title"><h1>Activity</h1><p>What the connector is doing. Copy this if something goes wrong.</p></div><span class="sp"></span><button class="btn" id="copylog">Copy</button></div>
+      <div class="logwrap"><div class="logbox" id="log"></div></div>
+    </section>
+
+    <!-- ESP32 -->
+    <section class="page" id="page-device">
+      <div class="title"><h1>Hardware</h1><p>Your ESP32 boards, their radio firmware, and the original USB Connector.</p></div>
+      <div class="card">
+        <div class="label">ESP32 boards</div>
+        <div class="ports" id="ports"></div>
+        <div class="note" id="fwinfo"></div>
+      </div>
+      <div class="card">
+        <div class="label">Radio firmware</div>
+        <div class="row"><div style="flex:1">Install or update the radio firmware on the selected ESP32. The chip is detected automatically.</div><button class="btn ok" id="flashbtn">Install firmware</button></div>
+        <div class="bar" id="flashbar" style="display:none"><i id="flashfill"></i></div>
+        <div class="note" id="flashmsg">Plug into the board's UART/COM port. If it can't connect, put it in download mode by hand (hold BOOT, press and release RESET, release BOOT) and click Install firmware again.</div>
+        <div class="chips" id="chips"></div>
+      </div>
+      <div class="card">
+        <div class="label">Original Nintendo Wi-Fi USB Connector</div>
+        <div class="row"><span class="tag" id="origtag">Not plugged in</span><span id="orignote" style="color:var(--muted)"></span></div>
+        <div class="note">Needs the WinUSB driver once: in Zadig, pick the device with USB ID 0411 008B and install WinUSB. On Linux, run once as root or add a udev rule for 0411:008b.</div>
+      </div>
+    </section>
+  </main>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+// --- feel like an app, not a web page ---
+document.addEventListener('contextmenu', e => { if(!e.target.closest('input,.logbox')) e.preventDefault(); });
+document.addEventListener('keydown', e => {
+  const k = e.key.toLowerCase();
+  if (k==='f5' || k==='f3' || k==='f7' || (e.ctrlKey && ['r','f','p','g','j','u','s','+','-','=','0'].includes(k))) e.preventDefault();
+});
+document.addEventListener('wheel', e => { if(e.ctrlKey) e.preventDefault(); }, {passive:false});
+document.addEventListener('dragstart', e => e.preventDefault());
+
+const TOKEN = location.hash.slice(1);
+const $ = id => document.getElementById(id);
+async function api(path, body){
+  const r = await fetch(path,{method: body?'POST':'GET', headers:{'X-Token':TOKEN,'Content-Type':'application/json'}, body: body?JSON.stringify(body):undefined});
+  const j = await r.json().catch(()=>({}));
+  if(!r.ok) throw new Error(j.error||r.statusText);
+  return j;
+}
+function toast(msg, bad){const t=$('toast');t.textContent=msg;t.className='toast'+(bad?' bad':'');t.style.display='block';clearTimeout(t._h);t._h=setTimeout(()=>t.style.display='none',4500)}
+const esc = s => String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmtTime = s => { const h=Math.floor(s/3600), m=Math.floor(s%3600/60), x=s%60; return (h?h+':':'')+String(m).padStart(h?2:1,'0')+':'+String(x).padStart(2,'0'); };
+const DS = '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#8fb3c4" stroke-width="1.8" stroke-linecap="round"><rect x="4" y="2.5" width="16" height="8.5" rx="2"/><rect x="4" y="13" width="16" height="8.5" rx="2"/><path d="M7 17.3h3M8.5 15.8v3"/><circle cx="16" cy="17.3" r=".9" fill="#8fb3c4"/></svg>';
+
+// navigation
+function go(page){
+  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on', b.dataset.page===page));
+  document.querySelectorAll('.page').forEach(p=>p.classList.toggle('on', p.id==='page-'+page));
+  if(page==='activity'){ const b=$('log'); b.scrollTop=b.scrollHeight; }
+}
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>go(b.dataset.page));
+document.querySelectorAll('[data-goto]').forEach(b=>b.onclick=()=>go(b.dataset.goto));
+
+let S=null, logN=0, inited=false, editing=false;
+
+function initSettings(s){
+  $('dns').innerHTML = s.presets.map(p=>`<option value="${esc(p.Address)}">${esc(p.Name)}</option>`).join('') + '<option value="custom">Custom…</option>';
+  $('channel').innerHTML = Array.from({length:11},(_,i)=>`<option value="${i+1}">${i+1}</option>`).join('');
+  const known = s.presets.some(p=>p.Address===s.dns);
+  $('dns').value = known ? s.dns : 'custom';
+  if(!known) $('customdns').value = s.dns;
+  $('channel').value = s.channel;
+  $('radio').value = s.radioKind || 'esp32';
+  $('radio').onchange = radioUI; radioUI();
+  $('dns').onchange = dnsUI; dnsUI();
+  inited = true;
+}
+function radioUI(){
+  const orig = $('radio').value === 'original';
+  $('portfield').style.display = orig ? 'none' : '';
+  $('form').classList.toggle('orig', orig);
+  $('stepsnote').textContent = orig ? '' : ' Your ESP32 answers as that connector.';
+}
+function dnsUI(){
+  const v=$('dns').value, p=(S.presets||[]).find(p=>p.Address===v);
+  $('customrow').style.display = v==='custom' ? 'block':'none';
+  $('dnsnote').textContent = v==='custom' ? 'Enter the DNS server address of the WFC service you want to use.' : p ? p.Note + (p.Address!=='system' ? '  ·  ' + p.Address : '') : '';
+}
+function chosenDNS(){ const v=$('dns').value; return v==='custom' ? $('customdns').value.trim() : v; }
+
+function render(s){
+  S=s; if(!inited) initSettings(s);
+  const running=s.status==='running', starting=s.status==='starting';
+  const cls = running?'live':starting?'starting':s.status==='error'?'error':'';
+  $('sidefoot').className='sidefoot '+cls;
+  $('sidestate').textContent = running?'Live':starting?'Starting…':s.status==='error'?'Needs attention':'Offline';
+  $('sideinfo').textContent = running ? `Channel ${s.channel} · ${fmtTime(s.uptime)}` : 'v'+s.version;
+  $('hero').className = 'card hero ' + (running?'live':'');
+  const consoles=s.consoles||[], conns=consoles.filter(c=>c.state==='connected'), pend=consoles.filter(c=>c.state==='pending');
+  if(running){
+    $('headline').textContent = conns.length ? (conns.length===1 ? (conns[0].name||'Your DS')+' is online' : conns.length+' consoles online') : pend.length ? 'A DS is waiting for you' : 'Your connector is live';
+    $('subline').textContent = conns.length ? 'Play away. Keep this window open while you’re online.' : pend.length ? 'Allow it to let it connect.' : 'Choose Nintendo Wi-Fi USB Connector on your DS.';
+  } else if(starting){ $('headline').textContent='Starting…'; $('subline').textContent='Talking to the radio.'; }
+  else { $('headline').textContent='Ready when you are'; $('subline').textContent = $('radio').value==='original' ? 'Plug in the original USB Connector and press Start.' : 'Plug in your ESP32 and press Start.'; }
+  $('err').textContent = s.status==='error' ? s.error : '';
+  const btn=$('mainbtn'); btn.className='btn '+(running?'stop':'go'); btn.textContent=running?'Stop':starting?'Starting…':'Start'; btn.disabled=starting||s.flash.active;
+  // banner
+  if(pend.length){ $('banner').style.display='flex'; $('bannername').textContent=pend[0].name||'A DS'; $('bannerallow').onclick=()=>allow(pend[0]); } else $('banner').style.display='none';
+  $('navbadge').style.display = pend.length?'inline-block':'none'; $('navbadge').textContent=pend.length;
+  // tiles
+  const c=s.counters||{};
+  $('t-time').textContent = running?fmtTime(s.uptime):'–';
+  $('t-cons').textContent = conns.length; $('t-in').textContent = (c.data_rx||0).toLocaleString(); $('t-out').textContent=(c.data_tx||0).toLocaleString();
+  // settings
+  $('setcard').classList.toggle('locked', running||starting);
+  if(running) $('channel').value=s.channel;
+  const espPorts=(s.ports||[]).filter(p=>p.Espressif||p.Bridge);
+  const opts=[['','Automatic']].concat(espPorts.map(p=>[p.Name,p.Name+(p.Espressif?' (native USB)':' (UART)')]));
+  const sel=$('port'), html=opts.map(([v,l])=>`<option value="${esc(v)}">${esc(l)}</option>`).join('');
+  if(sel._html!==html){ const cur=sel.value||s.port; sel.innerHTML=html; sel._html=html; sel.value=opts.some(o=>o[0]===cur)?cur:''; }
+  // consoles page
+  if(!editing){
+    $('consoles').innerHTML = consoles.length ? consoles.map(c=>`
+      <div class="console ${c.state}">
+        <div class="ds">${DS}</div>
+        <div class="meta">${c.state==='pending'?`<div style="font-weight:650">${esc(c.name||'Nintendo DS')}</div>`:`<input class="name" data-mac="${esc(c.mac)}" value="${esc(c.name||'Nintendo DS')}" spellcheck="false" maxlength="24">`}
+          <div class="mac">${esc(c.mac)}</div></div>
+        <span class="tag ${c.state}">${c.state==='connected'?'Online':c.state==='pending'?'Wants to connect':'Allowed'}</span>
+        ${c.state==='pending'?`<button class="btn ok" data-allow="${esc(c.mac)}">Allow</button>`:`<button class="btn quiet" data-revoke="${esc(c.mac)}">Remove</button>`}
+      </div>`).join('') : `<div class="empty"><div><b>No consoles yet</b>Press Start, then choose Nintendo Wi-Fi USB Connector on your DS.<br>It will appear here so you can allow it.</div></div>`;
+    $('consoles').style.flex = consoles.length ? '' : '1';
+    document.querySelectorAll('[data-allow]').forEach(b=>b.onclick=()=>allow(consoles.find(c=>c.mac===b.dataset.allow)));
+    document.querySelectorAll('[data-revoke]').forEach(b=>b.onclick=()=>{ if(confirm('Remove this console? It will need your permission again.')) api('/api/revoke',{mac:b.dataset.revoke}).then(refresh)});
+    document.querySelectorAll('input.name').forEach(i=>{ i.onfocus=()=>editing=true; i.onblur=()=>{editing=false;api('/api/rename',{mac:i.dataset.mac,name:i.value})}; i.onkeydown=e=>{if(e.key==='Enter')i.blur()} });
+  }
+  // device page
+  $('ports').innerHTML = espPorts.length ? espPorts.map(p=>`<div class="port"><b>${esc(p.Name)}</b><span>${esc(p.Product||'USB serial')} · ${esc(p.VID)}:${esc(p.PID)}</span><span class="tag ${p.Espressif?'allowed':'connected'}">${p.Espressif?'Native USB':'UART'}</span></div>`).join('')
+    : `<div class="port"><span>No ESP32 found. Plug the board into this computer.</span></div>`;
+  $('fwinfo').textContent = running && s.radioKind==='esp32' ? s.radio : 'Start the connector with an ESP32 to see which firmware it runs.';
+  $('origtag').textContent = s.originalPresent ? 'Plugged in' : 'Not plugged in';
+  $('origtag').className = 'tag ' + (s.originalPresent ? 'connected' : 'allowed');
+  $('orignote').textContent = running && s.radioKind==='original' ? s.radio : '';
+  $('chips').innerHTML = (s.chips||[]).map(c=>`<span class="chip">${esc(c)}</span>`).join('');
+  const f=s.flash||{};
+  $('flashbar').style.display = f.active||f.done ? 'block':'none';
+  $('flashfill').style.width=(f.percent||0)+'%';
+  if(f.error||f.message) $('flashmsg').textContent = f.error ? 'Install failed: '+f.error : f.message;
+  $('flashmsg').style.color = f.error ? 'var(--bad)' : '';
+  $('flashbtn').disabled = f.active||running||starting;
+  if(s.logN>logN) pullLogs();
+}
+function allow(c){ if(!c) return; api('/api/approve',{mac:c.mac,name:c.name}).then(()=>{toast((c.name||'Console')+' can now connect');refresh()}).catch(e=>toast(e.message,true)); }
+async function pullLogs(){
+  const lines=await api('/api/logs?since='+logN), box=$('log'), atEnd=box.scrollTop+box.clientHeight>=box.scrollHeight-24;
+  for(const l of lines){ const d=document.createElement('div'); d.innerHTML=`<span class="t">${esc(l.t)}</span>${esc(l.text)}`; box.appendChild(d); logN=l.n; }
+  while(box.childNodes.length>800) box.removeChild(box.firstChild);
+  if(atEnd) box.scrollTop=box.scrollHeight;
+}
+async function refresh(){ try{ render(await api('/api/state')); }catch(e){} }
+$('mainbtn').onclick = async()=>{
+  try{
+    if(S.status==='running') await api('/api/stop',{});
+    else { const d=chosenDNS(); if(!d){toast('Enter a DNS server address',true);return} await api('/api/start',{channel:+$('channel').value,dns:d,port:$('port').value,radio:$('radio').value}); }
+    refresh();
+  }catch(e){toast(e.message,true)}
+};
+$('flashbtn').onclick=()=>api('/api/flash',{port:$('port').value}).then(refresh).catch(e=>toast(e.message,true));
+$('copylog').onclick=()=>navigator.clipboard.writeText($('log').innerText).then(()=>toast('Activity copied'));
+refresh(); setInterval(refresh,1000);
+</script>
+</body>
+</html>
