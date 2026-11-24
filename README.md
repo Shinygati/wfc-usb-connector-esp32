@@ -1,7 +1,8 @@
 # WFC Connector (ESP32 Supported)
 
-An app that gets a Nintendo DS online through the Nintendo Wi-Fi USB Connector using the original adapter or either an ESP32 (ESP32, S2, S3, C3, C5, C6) chosen with the Radio dropdown option. The DS uses its
-"Nintendo Wi-Fi USB Connector" option; the app does the access-point and networking tasks from the PC.
+An app that gets a Nintendo DS online through the Nintendo Wi-Fi USB Connector using the original adapter or either an ESP32 (ESP32, S2, S3, C3, C5, C6) chosen with the Radio dropdown option.
+
+The DS uses its "Nintendo Wi-Fi USB Connector" option and connects to the PC.
 
 Based on [edgarburgues/wfc-usb-connector](https://github.com/edgarburgues/wfc-usb-connector)
 (MIT): the SoftAP, registration, permission and WEP logic are ported from its
